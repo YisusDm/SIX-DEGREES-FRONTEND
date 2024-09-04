@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-usuario-list',
   standalone: true,
-  imports: [NgFor, NgClass, UsuarioFormComponent, HttpClientModule],
+  imports: [NgFor, NgClass, UsuarioFormComponent, HttpClientModule, UsuarioFormComponent],
   providers: [ApiService, HttpClient],  // Añadir aquí ApiService y HttpClient como proveedores
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.css']
@@ -20,6 +20,15 @@ export class UsuarioListComponent {
 
   UsuarioList: Usuario[] = [];
   editingUsuario: Usuario = { usuId: 0, nombre: '', apellido: ''}; // Variable para manejar la tarea que se está editando
+
+  showModal = false;
+  action: 'create' | 'update' = 'create';
+
+  itemSelected: Usuario = {
+    apellido: '',
+    nombre: '',
+    usuId: 0
+  };
 
   constructor(private apiservice: ApiService, private router: Router){}
 
@@ -34,8 +43,29 @@ export class UsuarioListComponent {
     });
   }
 
+  onCreateUsuario(): void {
+    this.showModal = true;
+    this.action = 'create';
+    this.itemSelected = {
+      apellido: '',
+      nombre: '',
+      usuId: 0
+    };
+  }
+
   onEditUsuario(usuario: Usuario): void {
-    this.router.navigate(['/form', usuario.usuId]);
+    this.showModal = true;
+    this.action = 'update';
+    this.itemSelected = usuario;
+  }
+
+  onCloseModal(action: boolean): void {
+    this.showModal = !action;
+    this.itemSelected = {
+      apellido: '',
+      nombre: '',
+      usuId: 0
+    };
   }
 
   onDeleteUsuario(id: number): void {
@@ -47,5 +77,4 @@ export class UsuarioListComponent {
       });
     }
   }
-
 }

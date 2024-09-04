@@ -1,7 +1,7 @@
 import { Usuario } from './../../../models/usuario.model';
-import {Component, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule, HttpClient  } from '@angular/common/http';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { ApiService } from '../../../services/usuario.service';
 
 @Component({
@@ -14,49 +14,47 @@ import { ApiService } from '../../../services/usuario.service';
 })
 
 export class UsuarioFormComponent {
-  usuarioSaved = new EventEmitter<Usuario>();
-  usuario: Usuario = { usuId: 0, nombre: '', apellido: ''};
-  UsuarioList: Usuario[] = [];
+  @Output() usuarioSaved = new EventEmitter<Usuario>();
+  @Output() close = new EventEmitter<boolean>();
 
-  constructor(private apiservice: ApiService){}
+  // Usuario => Editar
+  // null => Creación
+  @Input() itemSelected: Usuario = {
+    apellido: '',
+    nombre: '',
+    usuId: 0
+  };
 
-
-  ngOnInit(): void {
-    this.loadUsuario();
-  }
-
-  loadUsuario(): void {
-    this.apiservice.getUserById('ObtenerUsuariosId',1).subscribe((usuario: Usuario[]) => {
-      this.UsuarioList = usuario;
-    });
-  }
+  constructor(private apiservice: ApiService) { }
 
   onSubmit(): void {
-    if (this.usuario.usuId === 0) {  // Comprobamos si es un nuevo usuario
-      this.apiservice.createUsuario('CrearUsuario', this.usuario).subscribe(response => {
-        console.log('Usuario creado:', response);
-      }, error => {
-        console.error('Error creando usuario:', error);
+    if (!this.itemSelected) return;
+
+    //Creación
+    if (this.itemSelected.usuId === 0) {  // Comprobamos si es un nuevo usuario
+      this.apiservice.createUsuario('CrearUsuario', this.itemSelected).subscribe({
+        next: response => {
+          alert('Creado Correctamente')
+          this.usuarioSaved.emit(this.itemSelected);
+          this.close.emit(true);
+        },
+        error: error => alert('Error en la creación del usuario')
       });
-    } else {  // Si se está editando un usuario existente
-      this.apiservice.updateUsuario('ModificarUsuario', this.usuario).subscribe(response => {
-        console.log('Usuario actualizado:', response);
-      }, error => {
-        console.error('Error actualizando usuario:', error);
+
+    } else {
+      this.apiservice.updateUsuario('ModificarUsuario', this.itemSelected).subscribe({
+        next: response => {
+          alert('Actualizado Correctamente')
+          this.usuarioSaved.emit(this.itemSelected);
+          this.close.emit(true);
+        },
+        error: error => alert('Error en la actualización del usuario')
       });
     }
   }
 
-  saveUsuario(usuario: Usuario): void {
-    this.usuario = usuario;
+  closeModal(e: any): void {
+    e.preventDefault();
+    this.close.emit(true);
   }
-
-  updateUsuario(usuario: Usuario) {
-    this.usuario = usuario;
-  }
-
-  deleteUsuario(id: number) {
-    // Manejar la lógica para eliminar el usuario
-  }
-
 }
